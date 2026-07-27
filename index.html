@@ -61,7 +61,7 @@
   @media(max-width:900px){.hmotif{width:250px;right:-90px}}
   @media(max-width:700px){.hmotif,.hchip{display:none}}
   header .brand{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-  .hlogo{height:30px;width:auto;display:block;margin-bottom:10px}
+  .hlogo{height:27px;width:auto;display:block;margin-bottom:10px}
   header h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.02em}
   header p{color:var(--muted);font-size:13.5px;margin-top:8px;max-width:560px}
   header .count{display:inline-block;margin-top:10px;background:var(--card);border:1px solid var(--border);
@@ -215,9 +215,8 @@
   @media(hover:hover){
     /* direct-child img only: photo-post carousel slides (.pcar img) must
        not zoom — a scaled slide breaks the snap layout */
-    .card:hover .thumb>img,.winner:hover .thumb>img,
-    .scard:hover .thumb>img{transform:scale(1.05)}
-    .card:hover .pbtn,.winner:hover .pbtn,.scard:hover .pbtn{opacity:1}
+    .card:hover .thumb>img,.winner:hover .thumb>img{transform:scale(1.05)}
+    .card:hover .pbtn,.winner:hover .pbtn{opacity:1}
   }
 
   /* ---------- PHOTO POSTS (brand-customization SOP #5) ----------
@@ -268,17 +267,17 @@
     font-weight:700;padding:6px 0;border-top:1px solid var(--border)}
   .winner a.wlink:hover{color:#fff}
 
-  /* v12/v13: ONE horizontal gallery per angle — scrolls RIGHT, never down.
-     The 3 headline winner cards lead, the rest of the angle's videos
-     continue rightward in the SAME row (owner-final: no separate "More of
-     this angle" strip). Native overflow-x + scroll-snap = touch swipe on
-     mobile for free; desktop gets a thin themed scrollbar + a right-edge
-     gradient fade as the "there's more" affordance (JS hides it at scroll
-     end / no overflow). Cards reuse thumbEl() -> same lightbox chain +
-     hover affordance. Winner cards keep their design at their old 3-across
-     width; strip cards stay compact. */
+  /* v12/v13/v14: ONE horizontal gallery per angle — scrolls RIGHT, never
+     down. v14 (owner round 13): EVERY card is winner-sized and EXACTLY 3
+     sit in the viewport at rest — width (100% - 16px)/3 with the row's 8px
+     gaps reproduces the old 3-up winners grid; the 4th+ cards scroll in
+     from the right at the SAME size. Native overflow-x + scroll-snap =
+     touch swipe on mobile for free; desktop gets a thin themed scrollbar +
+     a right-edge gradient fade as the "there's more" affordance (JS hides
+     it at scroll end / no overflow). Cards reuse thumbEl() -> same
+     lightbox chain + hover affordance. */
   .stripwrap{position:relative;margin-top:14px}
-  .strip .winner{flex:0 0 auto;width:calc((100% - 72px)/3);min-width:200px;
+  .strip .winner{flex:0 0 auto;width:calc((100% - 16px)/3);
     scroll-snap-align:start}
   .strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;
     scroll-snap-type:x proximity;scrollbar-width:thin;
@@ -287,12 +286,6 @@
   .strip::-webkit-scrollbar-track{background:transparent}
   .strip::-webkit-scrollbar-thumb{background:#3A3A3C;border-radius:3px}
   .strip::-webkit-scrollbar-thumb:hover{background:var(--accent)}
-  .scard{flex:0 0 120px;width:120px;scroll-snap-align:start;min-width:0}
-  .scard .thumb{border-radius:10px;border:1px solid var(--border)}
-  .scard .smeta{padding:5px 2px 0}
-  .scard .smeta .handle{font-size:11px;font-weight:600;color:var(--muted)}
-  .scard .sstats{display:flex;gap:7px;margin-top:2px;font-size:11px;color:var(--muted)}
-  .scard .sstats .s{color:var(--accent);font-weight:700}
   .sfade{position:absolute;top:0;bottom:8px;right:0;width:56px;pointer-events:none;
     background:linear-gradient(to right,rgba(28,28,30,0),var(--card));
     opacity:1;transition:opacity .25s ease}
@@ -1074,13 +1067,14 @@ function buildAngles(){
         r.textContent = "🎵 Sound that works: " + a.sound;
         el.appendChild(r);
       }
-      // v13 (owner-final): ONE horizontal gallery per angle — the 3 headline
-      // winner cards lead, the rest of the angle's videos continue rightward
-      // in the SAME scroll-snap row (no separate "More of this angle" strip)
-      if (a.winners.length || (a.more || []).length) {
+      // v14 (owner round 13): ONE horizontal gallery per angle — EVERY card
+      // winner-sized (one shared builder), exactly 3 in the viewport at
+      // rest, the rest scroll in from the right at the same size
+      const gallery = a.winners.concat(a.more || []);
+      if (gallery.length) {
         const sw = document.createElement("div"); sw.className = "stripwrap";
         const row = document.createElement("div"); row.className = "strip";
-        a.winners.forEach(v => {
+        gallery.forEach(v => {
           const wc = document.createElement("div"); wc.className = "winner";
           wc.appendChild(thumbEl(v));
           const wm = document.createElement("div"); wm.className = "wmeta";
@@ -1111,19 +1105,6 @@ function buildAngles(){
             wc.appendChild(wl);
           }
           row.appendChild(wc);
-        });
-        (a.more || []).forEach(v => {
-          const sc = document.createElement("div"); sc.className = "scard";
-          sc.appendChild(thumbEl(v));       // same lightbox chain + hover
-          const sm = document.createElement("div"); sm.className = "smeta";
-          const sh = document.createElement("div");
-          sh.className = "handle"; sh.textContent = "@" + v.handle;
-          const ss = document.createElement("div"); ss.className = "sstats";
-          ss.innerHTML = "<span>" + kfmt(v.views) + "</span>" +
-                         '<span class="s">$' + kfmt(v.sales) + "</span>";
-          sm.appendChild(sh); sm.appendChild(ss);
-          sc.appendChild(sm);
-          row.appendChild(sc);
         });
         const fade = document.createElement("div"); fade.className = "sfade";
         const syncFade = () => fade.classList.toggle("off",
