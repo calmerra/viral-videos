@@ -455,11 +455,19 @@
   .tpmodal{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.55);
     display:flex;align-items:center;justify-content:center;padding:16px}
   .tpcard{position:relative;background:var(--card);border:1.5px solid var(--accent);
-    border-radius:16px;padding:20px 22px;width:min(460px,92vw);
+    border-radius:16px;padding:20px 22px;width:min(640px,94vw);
     max-height:80vh;overflow:auto;box-shadow:0 16px 48px rgba(0,0,0,.55)}
-  .tpcard h4{font-size:15px;font-weight:800;margin:0 24px 10px 0}
+  .tpcard h4{font-size:15px;font-weight:800;margin:0 24px 12px 0}
   .tpcard ul{padding-left:18px}
-  .tpcard li{font-size:13px;color:#D6D6DA;line-height:1.6;margin-bottom:8px}
+  .tpcard li{font-size:12.5px;color:#D6D6DA;line-height:1.55;margin-bottom:7px}
+  /* round 3: two product columns (stack on phones) + shared footer line */
+  .tpcols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:560px){.tpcols{grid-template-columns:1fr}}
+  .tpcol{background:rgba(255,255,255,.03);border:1px solid var(--border);
+    border-radius:12px;padding:12px 14px 8px}
+  .tpcol h5{font-size:13px;font-weight:800;margin-bottom:8px}
+  .tpfoot{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.55;
+    border-top:1px solid var(--border);padding-top:10px}
   .tpx{position:absolute;top:10px;right:12px;background:none;border:0;
     color:var(--muted);font-size:15px;cursor:pointer;font-family:inherit}
   .tpx:hover{color:var(--text)}
@@ -486,6 +494,8 @@
     box-shadow:0 4px 16px rgba(0,0,0,.4)}
   .tourfab:hover{color:var(--text);border-color:var(--accent)}
   body.touring .tourfab{display:none}
+  /* round 3: the finale card TALKS about the ? button, so it must be visible then */
+  body.touring.tourfin .tourfab{display:inline-block}
   @media(max-width:700px){.tourfab{top:10px}}
 
   /* v16 easter egg: the team credit becomes the theme switch (subtle) */
@@ -554,10 +564,11 @@
 </section>
 
 <section id="talkpoints" class="wrap">
-  <details class="tpbox">
-    <summary>💊 What makes our products different (say this in your videos)</summary>
-    <ul><li>Magnesium 15-in-1: glycinate-led, the gentle form (no bloating), 10 forms of magnesium + 5 boosters like ashwagandha, maca and vegan D3</li><li>Cortisol Support 10-in-1: 1,122mg of actives for stress, sleep and mood — ashwagandha, L-theanine, rhodiola, GABA</li><li>Every dose is on the label. Zero hidden blends, zero mystery dosing</li><li>Vegan D3 (most brands use sheep&#x27;s wool lanolin — ours never)</li><li>Made specifically for women</li><li>40% OFF right now: $26.99 instead of $44.99 — tell your audience!</li></ul>
-  </details>
+  <div class="tpinner">
+    <h4>What makes our products different (say this in your videos)</h4>
+    <div class="tpcols"><div class="tpcol"><h5>💊 Magnesium Complex 15-in-1</h5><ul><li>Glycinate-led, the gentle form — no bloating, no harsh stomach side effects</li><li>10 forms of magnesium + 5 boosters: ashwagandha, myo-inositol, maca, vegan D3, B6</li><li>Built for sleep, muscles and daily energy</li><li>508mg total, dosed for every day — not megadosing</li></ul></div><div class="tpcol"><h5>🧘 Cortisol Support 10-in-1</h5><ul><li>1,122mg of actives aimed at stress, mood and focus</li><li>Ashwagandha 300mg + L-theanine 200mg + rhodiola, GABA, chasteberry</li><li>Made for women&#x27;s cortisol pathways, not a generic calm pill</li><li>Pairs with the Magnesium for the full stress + sleep routine</li></ul></div></div>
+    <p class="tpfoot">Both: every dose on the label (zero hidden blends) · vegan D3, never from sheep&#x27;s wool · made specifically for women · 40% OFF right now, $26.99 instead of $44.99 — tell your audience!</p>
+  </div>
 </section>
 <section id="view-angles" class="wrap"></section>
 
@@ -705,6 +716,9 @@ const ANGLE_BLOCKS = [];
 function syncAngleBlocks(){
   ANGLE_BLOCKS.forEach(b =>
     b.classList.toggle("hidden", state.tier !== "all" && b.dataset.tier !== state.tier));
+  // the all-scope header shows ONLY while the ALL pill is active
+  const ah = document.getElementById("allhead");
+  if (ah) ah.classList.toggle("hidden", state.tier !== "all");
 }
 
 function card(v){
@@ -992,7 +1006,7 @@ function buildPills(){
 // talking-points modal (content lives in the hidden #talkpoints section)
 function tpOpen(){
   if (document.querySelector(".tpmodal")) return;
-  const src = document.querySelector("#talkpoints .tpbox");
+  const src = document.querySelector("#talkpoints .tpinner");
   if (!src) return;
   const wrap = document.createElement("div");
   wrap.className = "tpmodal";
@@ -1001,9 +1015,7 @@ function tpOpen(){
   card.setAttribute("role", "dialog");
   card.setAttribute("aria-label", "Product talking points");
   card.innerHTML = "<button class='tpx' type='button' aria-label='Close'>✕</button>"
-    + "<h4></h4>" + src.querySelector("ul").outerHTML;
-  card.querySelector("h4").textContent =
-    src.querySelector("summary").textContent;
+    + src.innerHTML;
   wrap.appendChild(card);
   const close = () => { wrap.remove(); document.removeEventListener("keydown", onk); };
   const onk = e => { if (e.key === "Escape") close(); };
@@ -1136,6 +1148,19 @@ $("#f-q").oninput = e => {
 const STRIP_FADES = [];   // v12: per-strip fade sync fns (run when view shows)
 function buildAngles(){
   const root = $("#view-angles");
+  // owner 2026-08-03 round 3: with the ALL scope active the first thing on
+  // screen was the "Our Niche" tier header, which read as wrong. A dedicated
+  // all-scope header now tops the feed (per-tier headers still label their
+  // own groups as you scroll).
+  const ah = document.createElement("div");
+  ah.className = "tierblock"; ah.id = "allhead";
+  const ahh = document.createElement("h2");
+  ahh.textContent = "✨ All Niches · everything in one feed";
+  const ahp = document.createElement("p");
+  ahp.textContent = "Both lanes together: our exact products first, then the " +
+    "similar-niche winners. Pick a pill above to focus one lane.";
+  ah.appendChild(ahh); ah.appendChild(ahp);
+  root.appendChild(ah);
   TIERS.forEach(tk => {
     const angles = DATA.angles[tk] || [];
     if (!angles.length) return;
@@ -1452,15 +1477,18 @@ function tourShow(i){
   if (!el) { tourShow(i + 1); return; }
   if (s.finale) {
     // finale card (owner 2026-08-03): scroll to the very top, hide the
-    // spotlight + arrow, center the tip as a celebration card.
+    // spotlight + arrow, center the tip as a celebration card. The ? fab is
+    // revealed here (body.tourfin) because the card points at it.
     window.scrollTo({ top: 0 });
     tourEls.hl.style.display = "none";
     tourEls.arr.style.display = "none";
     tourEls.tip.classList.add("tourfinale");
+    document.body.classList.add("tourfin");
   } else {
     tourEls.hl.style.display = "";
     tourEls.arr.style.display = "";
     tourEls.tip.classList.remove("tourfinale");
+    document.body.classList.remove("tourfin");
     el.scrollIntoView({ block: s.sb || "center" });
   }
   tourEls.tip.querySelector("h4").textContent = s.h;
@@ -1480,6 +1508,7 @@ function tourEnd(){
   document.removeEventListener("keydown", tourEls.onkey);
   [tourEls.block, tourEls.hl, tourEls.tip, tourEls.arr].forEach(n => n.remove());
   document.body.classList.remove("touring");
+  document.body.classList.remove("tourfin");
   tourEls = null;
 }
 
