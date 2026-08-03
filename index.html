@@ -466,8 +466,11 @@
   .tpcol{background:rgba(255,255,255,.03);border:1px solid var(--border);
     border-radius:12px;padding:12px 14px 8px}
   .tpcol h5{font-size:13px;font-weight:800;margin-bottom:8px}
+  .tpnote{font-size:11.5px;color:var(--muted);margin:-6px 0 12px;line-height:1.5}
   .tpfoot{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.55;
     border-top:1px solid var(--border);padding-top:10px}
+  /* round 4: ALL scope shows only the combined header */
+  .tierblock.headoff>h2,.tierblock.headoff>p{display:none}
   .tpx{position:absolute;top:10px;right:12px;background:none;border:0;
     color:var(--muted);font-size:15px;cursor:pointer;font-family:inherit}
   .tpx:hover{color:var(--text)}
@@ -566,8 +569,8 @@
 <section id="talkpoints" class="wrap">
   <div class="tpinner">
     <h4>What makes our products different (say this in your videos)</h4>
-    <div class="tpcols"><div class="tpcol"><h5>💊 Magnesium Complex 15-in-1</h5><ul><li>Glycinate-led, the gentle form — no bloating, no harsh stomach side effects</li><li>10 forms of magnesium + 5 boosters: ashwagandha, myo-inositol, maca, vegan D3, B6</li><li>Built for sleep, muscles and daily energy</li><li>508mg total, dosed for every day — not megadosing</li></ul></div><div class="tpcol"><h5>🧘 Cortisol Support 10-in-1</h5><ul><li>1,122mg of actives aimed at stress, mood and focus</li><li>Ashwagandha 300mg + L-theanine 200mg + rhodiola, GABA, chasteberry</li><li>Made for women&#x27;s cortisol pathways, not a generic calm pill</li><li>Pairs with the Magnesium for the full stress + sleep routine</li></ul></div></div>
-    <p class="tpfoot">Both: every dose on the label (zero hidden blends) · vegan D3, never from sheep&#x27;s wool · made specifically for women · 40% OFF right now, $26.99 instead of $44.99 — tell your audience!</p>
+    <p class="tpnote">These are ONLY the talking points. Your hooks &amp; angles must come from the proven videos in this library.</p><div class="tpcols"><div class="tpcol"><h5>💊 Magnesium Complex 15-in-1</h5><ul><li>Led by high-absorption, premium forms of magnesium like magnesium glycinate</li><li>No 1,000mg oxide megadoses that cause bloating</li><li>10 forms of magnesium &amp; 5 boosters: ashwagandha, myo-inositol, maca, vegan D3, B6</li><li>508mg complex built for first-time users and women with sensitive stomachs</li><li>100% vegan, including vitamin D3 from lichen (other brands use sheep wool for their D3)</li><li>Made in USA, lab tested, no weird additives or fillers</li></ul></div><div class="tpcol"><h5>🧘 Cortisol Support 10-in-1</h5><ul><li>Made for women&#x27;s cortisol pathways that unisex formulas will never touch</li><li>Calming ingredients like ashwagandha, L-theanine and magnesium, boosted with hormone-balancing ingredients like inositol, maca root, vitamin D3 &amp; B6</li><li>10-in-1 formula with 1,122mg of actives, no hidden blends</li><li>100% vegan, including vitamin D3 from lichen (other brands use sheep wool for their D3)</li><li>Made in USA, lab tested, no weird additives or fillers</li></ul></div></div>
+    
   </div>
 </section>
 <section id="view-angles" class="wrap"></section>
@@ -714,9 +717,12 @@ function applyFilters(){
 // scope pill selection also narrows the Proven angles view to that tier
 const ANGLE_BLOCKS = [];
 function syncAngleBlocks(){
-  ANGLE_BLOCKS.forEach(b =>
-    b.classList.toggle("hidden", state.tier !== "all" && b.dataset.tier !== state.tier));
-  // the all-scope header shows ONLY while the ALL pill is active
+  ANGLE_BLOCKS.forEach(b => {
+    b.classList.toggle("hidden", state.tier !== "all" && b.dataset.tier !== state.tier);
+    // owner 2026-08-03 round 4: on ALL, the combined header is the ONLY header
+    // on screen - per-tier h2/intro hide entirely and return when one lane is picked
+    b.classList.toggle("headoff", state.tier === "all");
+  });
   const ah = document.getElementById("allhead");
   if (ah) ah.classList.toggle("hidden", state.tier !== "all");
 }
